@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as graficos
+import matplotlib.pyplot as plt
+import numpy as np
 
 # ================================
 # Configuración inicial
@@ -12,11 +13,6 @@ st.set_page_config(page_title="Análisis de Leyendas del Baloncesto", layout="wi
 # ================================
 st.markdown("""
     <style>
-        body {
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #f0f0f0;
-            font-family: 'Segoe UI', sans-serif;
-        }
         .page-title {
             font-size: 3rem;
             font-weight: 900;
@@ -45,7 +41,6 @@ st.markdown("""
 # Título principal
 # ================================
 st.markdown('<div class="page-title">📊 Análisis de Leyendas del Baloncesto</div>', unsafe_allow_html=True)
-st.markdown("Exploramos las estadísticas de **5 leyendas de la NBA**: Michael Jordan, LeBron James, Kobe Bryant, Kareem Abdul-Jabbar y Magic Johnson.")
 
 # ================================
 # Datos
@@ -61,7 +56,7 @@ data = {
 df = pd.DataFrame(data)
 
 # ================================
-# Tabla de datos
+# Tabla
 # ================================
 with st.container():
     st.markdown('<div class="section-card"><h2>📋 Tabla de estadísticas</h2>', unsafe_allow_html=True)
@@ -71,46 +66,97 @@ with st.container():
 # ================================
 # Menú de gráficos
 # ================================
-st.markdown('<div class="section-card"><h2>📊 Visualizaciones Interactivas</h2>', unsafe_allow_html=True)
+st.markdown('<div class="section-card"><h2>📊 Visualizaciones</h2>', unsafe_allow_html=True)
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "🏀 Puntos Totales", 
+    "📈 Partidos Jugados", 
+    "🔎 Puntos vs Asistencias", 
+    "🏆 Títulos Ganados",
+    "🌐 Radar Comparativo"
+])
 
-tab1, tab2, tab3 = st.tabs(["🏀 Puntos Totales", "📈 Partidos Jugados", "🔎 Puntos vs Asistencias"])
+plt.style.use("dark_background")
 
+# ========== TAB 1 ==========
 with tab1:
     st.markdown("### 🏀 Puntos totales por jugador")
-    fig1 = graficos.bar(df, x="Jugador", y="Puntos", color="Jugador",
-                  text="Puntos", template="plotly_dark",
-                  color_discrete_sequence=graficos.colors.sequential.Reds)
-    fig1.update_traces(textposition="outside")
-    st.plotly_chart(fig1, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    bars = ax.bar(df["Jugador"], df["Puntos"], color="tomato")
+    ax.set_title("Comparación de puntos anotados", fontsize=16)
+    ax.set_ylabel("Puntos")
+    plt.xticks(rotation=15)
 
+    for bar in bars:
+        yval = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, yval + 500, f"{yval:,}", 
+                ha="center", va="bottom", fontsize=9, color="yellow")
+    st.pyplot(fig)
+
+# ========== TAB 2 ==========
 with tab2:
     st.markdown("### 📈 Partidos disputados por leyenda")
-    fig2 = graficos.line(df, x="Jugador", y="Partidos", markers=True,
-                   template="plotly_dark", line_shape="linear",
-                   color_discrete_sequence=["#00c3ff"])
-    st.plotly_chart(fig2, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(df["Jugador"], df["Partidos"], marker="o", linewidth=3, color="cyan")
+    ax.set_title("Número total de partidos jugados", fontsize=16)
+    ax.set_ylabel("Partidos")
+    plt.xticks(rotation=15)
 
+    for i, val in enumerate(df["Partidos"]):
+        ax.text(i, val + 30, str(val), ha="center", fontsize=9, color="yellow")
+    st.pyplot(fig)
+
+# ========== TAB 3 ==========
 with tab3:
     st.markdown("### 🔎 Relación entre puntos y asistencias")
-    fig3 = graficos.scatter(df, x="Puntos", y="Asistencias", size="Rebotes",
-                      color="Jugador", template="plotly_dark",
-                      hover_name="Jugador", size_max=60)
-    st.plotly_chart(fig3, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    scatter = ax.scatter(df["Puntos"], df["Asistencias"], 
+                         s=df["Rebotes"]/2, c=df["Asistencias"], cmap="viridis", edgecolors="white")
+    ax.set_title("Relación entre puntos, asistencias y rebotes", fontsize=16)
+    ax.set_xlabel("Puntos")
+    ax.set_ylabel("Asistencias")
+    for i, txt in enumerate(df["Jugador"]):
+        ax.annotate(txt, (df["Puntos"][i], df["Asistencias"][i]), fontsize=9, color="white")
+    fig.colorbar(scatter, ax=ax, label="Asistencias")
+    st.pyplot(fig)
+
+# ========== TAB 4 ==========
+with tab4:
+    st.markdown("### 🏆 Comparación de títulos ganados")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    bars = ax.bar(df["Jugador"], df["Títulos"], color="royalblue")
+    ax.set_title("Cantidad de títulos NBA ganados", fontsize=16)
+    ax.set_ylabel("Títulos")
+    plt.xticks(rotation=15)
+
+    for bar in bars:
+        yval = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, yval + 0.2, str(yval), 
+                ha="center", va="bottom", fontsize=9, color="yellow")
+    st.pyplot(fig)
+
+# ========== TAB 5 ==========
+with tab5:
+    st.markdown("### 🌐 Radar comparativo de estadísticas")
+    categories = ["Partidos", "Puntos", "Asistencias", "Rebotes", "Títulos"]
+    N = len(categories)
+
+    values = df[categories].values
+    max_vals = values.max(axis=0)  # normalizar
+    norm_values = values / max_vals  
+
+    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
+    for i, row in df.iterrows():
+        vals = norm_values[i].tolist()
+        vals += vals[:1]
+        ax.plot(angles, vals, linewidth=2, label=row["Jugador"])
+        ax.fill(angles, vals, alpha=0.15)
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories)
+    ax.set_title("Radar comparativo (valores normalizados)", size=15, pad=20)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
+    st.pyplot(fig)
 
 st.markdown("</div>", unsafe_allow_html=True)
-
-# ================================
-# Conclusión
-# ================================
-st.markdown("""
-<div class="section-card">
-    <h2>📌 Conclusiones</h2>
-    <p>
-    - <b>LeBron James</b> lidera en puntos, asistencias y rebotes, mostrando su versatilidad.<br>
-    - <b>Kareem Abdul-Jabbar</b> sigue siendo un referente histórico con su récord de puntos.<br>
-    - <b>Michael Jordan</b> y <b>Kobe Bryant</b> se consolidan como los mejores anotadores.<br>
-    - <b>Magic Johnson</b> destaca por su visión de juego, siendo el máximo asistidor.<br>
-    - Cada jugador aporta una dimensión distinta: anotación, liderazgo, rebotes o visión de juego.
-    </p>
-</div>
-""", unsafe_allow_html=True)

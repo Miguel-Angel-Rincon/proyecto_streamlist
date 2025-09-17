@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as graficos
+import plotly.graph_objects as go
 
 # ================================
 # Configuración inicial
@@ -69,33 +69,113 @@ with st.container():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ================================
-# Menú de gráficos
+# Menú de gráficos (mejorados con go)
 # ================================
 st.markdown('<div class="section-card"><h2>📊 Visualizaciones Interactivas</h2>', unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["🏀 Puntos Totales", "📈 Partidos Jugados", "🔎 Puntos vs Asistencias"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🏀 Puntos Totales", 
+    "📈 Partidos Jugados", 
+    "🔎 Puntos vs Asistencias", 
+    "🏆 Títulos Ganados"
+])
 
 with tab1:
-    st.markdown("### 🏀 Puntos totales por jugador")
-    fig1 = graficos.bar(df, x="Jugador", y="Puntos", color="Jugador",
-                  text="Puntos", template="plotly_dark",
-                  color_discrete_sequence=graficos.colors.sequential.Reds)
-    fig1.update_traces(textposition="outside")
+    st.markdown("### 🏀 Puntos totales por jugador (Barras con degradado)")
+    fig1 = go.Figure(data=[
+        go.Bar(
+            x=df["Jugador"],
+            y=df["Puntos"],
+            text=df["Puntos"],
+            textposition="outside",
+            marker=dict(
+                color=df["Puntos"],
+                colorscale="Reds",
+                line=dict(color="black", width=1.5)
+            )
+        )
+    ])
+    fig1.update_layout(
+        template="plotly_dark",
+        title="Puntos Totales",
+        xaxis_title="Jugador",
+        yaxis_title="Puntos",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
     st.plotly_chart(fig1, use_container_width=True)
 
 with tab2:
-    st.markdown("### 📈 Partidos disputados por leyenda")
-    fig2 = graficos.line(df, x="Jugador", y="Partidos", markers=True,
-                   template="plotly_dark", line_shape="linear",
-                   color_discrete_sequence=["#00c3ff"])
+    st.markdown("### 📈 Partidos disputados por leyenda (Curva Suave)")
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(
+        x=df["Jugador"], y=df["Partidos"],
+        mode="lines+markers+text",
+        text=df["Partidos"],
+        textposition="top center",
+        line=dict(color="#00c3ff", width=4, shape="spline"),
+        marker=dict(size=12, color="#ffcc70", line=dict(color="black", width=2))
+    ))
+    fig2.update_layout(
+        template="plotly_dark",
+        title="Partidos disputados",
+        xaxis_title="Jugador",
+        yaxis_title="Partidos",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
     st.plotly_chart(fig2, use_container_width=True)
 
 with tab3:
-    st.markdown("### 🔎 Relación entre puntos y asistencias")
-    fig3 = graficos.scatter(df, x="Puntos", y="Asistencias", size="Rebotes",
-                      color="Jugador", template="plotly_dark",
-                      hover_name="Jugador", size_max=60)
+    st.markdown("### 🔎 Relación entre puntos y asistencias (Bubble Chart)")
+    fig3 = go.Figure()
+    fig3.add_trace(go.Scatter(
+        x=df["Puntos"], y=df["Asistencias"],
+        mode="markers+text",
+        text=df["Jugador"],
+        textposition="top center",
+        marker=dict(
+            size=df["Rebotes"] / 400,  # Escala para burbujas
+            color=df["Asistencias"],
+            colorscale="Viridis",
+            showscale=True,
+            line=dict(color="white", width=2)
+        )
+    ))
+    fig3.update_layout(
+        template="plotly_dark",
+        title="Puntos vs Asistencias (tamaño según rebotes)",
+        xaxis_title="Puntos",
+        yaxis_title="Asistencias",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
     st.plotly_chart(fig3, use_container_width=True)
+
+with tab4:
+    st.markdown("### 🏆 Comparación de títulos ganados")
+    fig4 = go.Figure(data=[
+        go.Bar(
+            x=df["Jugador"],
+            y=df["Títulos"],
+            text=df["Títulos"],
+            textposition="outside",
+            marker=dict(
+                color=df["Títulos"],
+                colorscale="Blues",
+                line=dict(color="black", width=1.5)
+            )
+        )
+    ])
+    fig4.update_layout(
+        template="plotly_dark",
+        title="Títulos de la NBA por jugador",
+        xaxis_title="Jugador",
+        yaxis_title="Títulos",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig4, use_container_width=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -110,7 +190,7 @@ st.markdown("""
     - <b>Kareem Abdul-Jabbar</b> sigue siendo un referente histórico con su récord de puntos.<br>
     - <b>Michael Jordan</b> y <b>Kobe Bryant</b> se consolidan como los mejores anotadores.<br>
     - <b>Magic Johnson</b> destaca por su visión de juego, siendo el máximo asistidor.<br>
-    - Cada jugador aporta una dimensión distinta: anotación, liderazgo, rebotes o visión de juego.
+    - En títulos, Jordan y Kareem dominan con <b>6 campeonatos</b> cada uno, seguidos muy de cerca por Kobe y Magic.
     </p>
 </div>
 """, unsafe_allow_html=True)

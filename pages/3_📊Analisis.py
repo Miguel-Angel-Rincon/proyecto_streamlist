@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.express as graficos
 
 # ================================
 # Configuración inicial
@@ -77,22 +77,22 @@ tab1, tab2, tab3 = st.tabs(["🏀 Puntos Totales", "📈 Partidos Jugados", "�
 
 with tab1:
     st.markdown("### 🏀 Puntos totales por jugador")
-    fig1 = px.bar(df, x="Jugador", y="Puntos", color="Jugador",
+    fig1 = graficos.bar(df, x="Jugador", y="Puntos", color="Jugador",
                   text="Puntos", template="plotly_dark",
-                  color_discrete_sequence=px.colors.sequential.Reds)
+                  color_discrete_sequence=graficos.colors.sequential.Reds)
     fig1.update_traces(textposition="outside")
     st.plotly_chart(fig1, use_container_width=True)
 
 with tab2:
     st.markdown("### 📈 Partidos disputados por leyenda")
-    fig2 = px.line(df, x="Jugador", y="Partidos", markers=True,
+    fig2 = graficos.line(df, x="Jugador", y="Partidos", markers=True,
                    template="plotly_dark", line_shape="linear",
                    color_discrete_sequence=["#00c3ff"])
     st.plotly_chart(fig2, use_container_width=True)
 
 with tab3:
     st.markdown("### 🔎 Relación entre puntos y asistencias")
-    fig3 = px.scatter(df, x="Puntos", y="Asistencias", size="Rebotes",
+    fig3 = graficos.scatter(df, x="Puntos", y="Asistencias", size="Rebotes",
                       color="Jugador", template="plotly_dark",
                       hover_name="Jugador", size_max=60)
     st.plotly_chart(fig3, use_container_width=True)
